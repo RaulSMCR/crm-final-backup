@@ -4,21 +4,28 @@ import { PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient();
 
-// Esta función especial le dice a Next.js que obtenga los datos
-// de la base de datos antes de construir la página.
-async function getServicesFromDb() {
-  const services = await prisma.service.findMany({
-    include: {
-      professional: true, // También trae la información del profesional asociado
+// Obtiene categorías de servicios únicas de la base de datos.
+async function getServiceCategories() {
+  const categories = await prisma.service.findMany({
+    // Usa 'distinct' para obtener una entrada por cada 'title' único.
+    distinct: ['title'],
+    select: {
+      id: true, // ID del primer servicio de la categoría, para el enlace.
+      title: true,
+      description: true,
+      imageUrl: true,
+    },
+    orderBy: {
+      title: 'asc', // Ordena las categorías alfabéticamente.
     },
   });
-  return services;
+  return categories;
 }
 
-// Convertimos el componente de la página en una función 'async'
+// La página de servicios ahora muestra categorías.
 export default async function ServiciosPage() {
-  // Llamamos a la función para obtener los servicios reales de la BD
-  const services = await getServicesFromDb();
+  // Obtiene las categorías de servicios de la base de datos.
+  const categories = await getServiceCategories();
 
   return (
     <div className="bg-gray-50 py-12">
@@ -27,15 +34,12 @@ export default async function ServiciosPage() {
           Nuestros Servicios
         </h1>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {services.map((service) => (
-            // Pasamos los datos del servicio a la tarjeta.
-            // ServiceCard espera 'professionalName', así que lo extraemos del objeto anidado.
+          {categories.map((category) => (
+            // Pasa los datos de la categoría a la tarjeta.
+            // La prop 'service' ahora contiene la información de la categoría.
             <ServiceCard 
-              key={service.id} 
-              service={{
-                ...service,
-                professionalName: service.professional.name 
-              }} 
+              key={category.id}
+              service={category}
             />
           ))}
         </div>

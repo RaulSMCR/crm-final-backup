@@ -5,16 +5,19 @@ export const professionals = [
     id: 1,
     name: 'Dra. Ana Pérez',
     role: 'Psicóloga Clínica',
+    location: 'Online',
   },
   {
     id: 2,
     name: 'Lic. Carlos Rojas',
     role: 'Nutricionista',
+    location: 'Ciudad de México',
   },
   {
     id: 3,
     name: 'Laura Fernández',
     role: 'Coach de Carrera',
+    location: 'Online',
   }
 ];
 

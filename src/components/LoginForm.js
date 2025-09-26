@@ -1,7 +1,7 @@
 'use client';
 import { useState } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 
 export default function LoginForm() {
   const [formData, setFormData] = useState({
@@ -10,6 +10,8 @@ export default function LoginForm() {
   });
   const [message, setMessage] = useState('');
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const redirectPath = searchParams.get('redirect');
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -30,7 +32,9 @@ export default function LoginForm() {
       const data = await response.json();
 
       if (response.ok) {
-        if (data.role === 'USER') {
+        if (redirectPath) {
+          router.push(redirectPath);
+        } else if (data.role === 'USER') {
           router.push('/dashboard');
         } else if (data.role === 'PROFESSIONAL') {
           router.push('/dashboard-profesional');

@@ -2,16 +2,70 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { PrismaClient } from '@prisma/client';
+import PostNavigation from '../../../components/PostNavigation';
 
 const prisma = new PrismaClient();
 
 // Función que busca un solo artículo en la BD por su 'slug'
 async function getPost(slug) {
   const post = await prisma.post.findUnique({
-    where: { slug: slug },
+    where: { slug: slug, status: 'PUBLISHED' },
     include: { author: true }, // También trae los datos del autor
   });
-  return post;
+
+  if (!post) {
+    return { post: null, prevPost: null, nextPost: null };
+  }
+
+  // Buscar artículo anterior del mismo autor
+  const prevPost = await prisma.post.findFirst({
+    where: {
+      authorId: post.authorId,
+      createdAt: { lt: post.createdAt },
+      status: 'PUBLISHED',
+    },
+    orderBy: { createdAt: 'desc' },
+    select: { slug: true, title: true },
+  });
+
+  // Buscar artículo siguiente del mismo autor
+  let nextPost = await prisma.post.findFirst({
+    where: {
+      authorId: post.authorId,
+      createdAt: { gt: post.createdAt },
+      status: 'PUBLISHED',
+    },
+    orderBy: { createdAt: 'asc' },
+    select: { slug: true, title: true },
+  });
+
+  // Si no hay siguiente, buscar uno de otro profesional
+  if (!nextPost) {
+    const otherPosts = await prisma.post.findMany({
+      where: {
+        authorId: { not: post.authorId },
+        status: 'PUBLISHED',
+      },
+      include: {
+        author: {
+          select: { name: true },
+        },
+      },
+    });
+
+    if (otherPosts.length > 0) {
+      const randomIndex = Math.floor(Math.random() * otherPosts.length);
+      const randomPost = otherPosts[randomIndex];
+      nextPost = {
+        slug: randomPost.slug,
+        title: randomPost.title,
+        isSuggestion: true,
+        authorName: randomPost.author.name,
+      };
+    }
+  }
+
+  return { post, prevPost, nextPost };
 }
 
 // Componente "ayudante" que decide si mostrar una imagen, video o audio
@@ -47,7 +101,7 @@ function PostMedia({ post }) {
 }
 
 export default async function PostDetailPage({ params }) {
-  const post = await getPost(params.slug);
+  const { post, prevPost, nextPost } = await getPost(params.slug);
 
   if (!post) {
     return (
@@ -79,6 +133,8 @@ export default async function PostDetailPage({ params }) {
           <p>{post.content}</p>
         </div>
 
+        {/* Componente de navegación entre artículos */}
+        <PostNavigation prevPost={prevPost} nextPost={nextPost} />
       </div>
     </div>
   );

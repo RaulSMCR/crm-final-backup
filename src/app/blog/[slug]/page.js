@@ -2,6 +2,7 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { PrismaClient } from '@prisma/client';
+import ProfessionalCard from '../../../components/ProfessionalCard';
 
 const prisma = new PrismaClient();
 
@@ -79,6 +80,8 @@ export default async function PostDetailPage({ params }) {
           <p>{post.content}</p>
         </div>
 
+        {/* Añadir el ProfessionalCard al final del post */}
+        {post.author && <ProfessionalCard professional={post.author} />}
       </div>
     </div>
   );

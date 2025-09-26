@@ -6,7 +6,7 @@ generator client {
 }
 
 datasource db {
-  provider = "mysql" // Configurado para tu base de datos de GoDaddy (MySQL/MariaDB)
+  provider = "sqlite"
   url      = env("DATABASE_URL")
 }
 
@@ -44,7 +44,7 @@ model Professional {
 model Service {
   id             Int     @id @default(autoincrement())
   title          String
-  description    String  @db.Text
+  description    String
   price          Float
   imageUrl       String
   professionalId Int
@@ -57,7 +57,7 @@ model Post {
   id        Int      @id @default(autoincrement())
   slug      String   @unique
   title     String
-  content   String   @db.Text
+  content   String
   imageUrl  String?  // La imagen de cabecera es opcional
   postType  String   @default("text") // Puede ser "text", "video", o "audio"
   mediaUrl  String?  // Para la URL del video o podcast

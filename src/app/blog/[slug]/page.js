@@ -2,6 +2,7 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { PrismaClient } from '@prisma/client';
+import ProfessionalCard from '../../../components/ProfessionalCard';
 import PostNavigation from '../../../components/PostNavigation';
 
 const prisma = new PrismaClient();
@@ -132,6 +133,9 @@ export default async function PostDetailPage({ params }) {
         <div className="prose lg:prose-xl max-w-none">
           <p>{post.content}</p>
         </div>
+
+        {/* Añadir el ProfessionalCard al final del post */}
+        {post.author && <ProfessionalCard professional={post.author} />}
 
         {/* Componente de navegación entre artículos */}
         <PostNavigation prevPost={prevPost} nextPost={nextPost} />
